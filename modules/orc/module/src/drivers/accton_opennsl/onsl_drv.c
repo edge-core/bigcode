@@ -332,9 +332,11 @@ onsl_drv_tx_pkt(port_t *port, u8 *pkt, unsigned int len)
     OPENNSL_IF_ERROR_RETURN(opennsl_pkt_alloc(dport->drv_unit, len, OPENNSL_TX_CRC_APPEND, &drv_pkt));
 
     memcpy(drv_pkt->pkt_data[0].data, pkt, len);
-    drv_pkt->flags = OPENNSL_TX_CRC_APPEND | OPENNSL_TX_ETHER;
-    drv_pkt->dest_port = dport->drv_port;
     drv_pkt->cos = ONSL_DRV_TX_COS;
+
+    _SHR_PBMP_CLEAR((drv_pkt)->tx_pbmp);
+    OPENNSL_PBMP_PORT_SET((drv_pkt)->tx_pbmp, dport->drv_port);
+    OPENNSL_PBMP_CLEAR((drv_pkt)->tx_upbmp);
 
     opennsl_tx_pkt_setup(dport->drv_unit, drv_pkt);
 

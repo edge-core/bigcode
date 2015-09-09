@@ -401,8 +401,14 @@ static opennsl_rx_t onsl_drv_rx_cb(
                                 header_len + payload_len);
             }
 
-            rv = write(dport->user_port.fd, pkt->pkt_data->data, header_len);
-            rv = write(dport->user_port.fd, payload + payload_offset, payload_len);
+	    uint8_t* packet = (uint8_t*)malloc(header_len + payload_len);
+	    memcpy(packet, pkt->pkt_data->data, header_len);
+	    memcpy(packet + header_len, payload + payload_offset, payload_len);
+
+	    rv = write(dport->user_port.fd, packet, header_len + payload_len);
+
+	    free(packet);
+
             return OPENNSL_RX_HANDLED_OWNED;
         }
     }

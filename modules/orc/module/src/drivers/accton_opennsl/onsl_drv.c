@@ -26,6 +26,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <unistd.h>
 #include <net/ethernet.h>
 #include <netinet/in.h>
@@ -316,10 +317,10 @@ onsl_drv_tx_pkt(port_t *port, u8 *pkt, unsigned int len)
 {
     onsl_drv_port_t *dport = (onsl_drv_port_t *)port;
     opennsl_pkt_t *drv_pkt = NULL;
+    struct ether_header * eth = (struct ether_header *) pkt;
     int rv;
 
     {
-        struct ether_header * eth = (struct ether_header *) pkt;
         orc_debug("Sending packet from port %s to ASIC: "
                         ETH_FORMAT " -> " ETH_FORMAT " :: (0x%.4x) %u bytes\n",
                         port->name,
@@ -332,11 +333,21 @@ onsl_drv_tx_pkt(port_t *port, u8 *pkt, unsigned int len)
     OPENNSL_IF_ERROR_RETURN(opennsl_pkt_alloc(dport->drv_unit, len, OPENNSL_TX_CRC_APPEND, &drv_pkt));
 
     memcpy(drv_pkt->pkt_data[0].data, pkt, len);
+    drv_pkt->dest_port = dport->drv_port;
     drv_pkt->cos = ONSL_DRV_TX_COS;
 
-    _SHR_PBMP_CLEAR((drv_pkt)->tx_pbmp);
-    OPENNSL_PBMP_PORT_SET((drv_pkt)->tx_pbmp, dport->drv_port);
-    OPENNSL_PBMP_CLEAR((drv_pkt)->tx_upbmp);
+    OPENNSL_PBMP_PORT_SET(drv_pkt->tx_pbmp, dport->drv_port);
+    OPENNSL_PBMP_CLEAR(drv_pkt->tx_upbmp);
+
+    if (ntohs(eth->ether_type) != 0x8100) {
+        drv_pkt->flags |= OPENNSL_PKT_F_NO_VTAG;
+    }
+
+    /* TODO: or force untag for all pkt?
+     */
+    if (drv_pkt->flags & OPENNSL_PKT_F_NO_VTAG) {
+        OPENNSL_PBMP_PORT_SET(drv_pkt->tx_upbmp, dport->drv_port);
+    }
 
     opennsl_tx_pkt_setup(dport->drv_unit, drv_pkt);
 
@@ -401,14 +412,8 @@ static opennsl_rx_t onsl_drv_rx_cb(
                                 header_len + payload_len);
             }
 
-	    uint8_t* packet = (uint8_t*)malloc(header_len + payload_len);
-	    memcpy(packet, pkt->pkt_data->data, header_len);
-	    memcpy(packet + header_len, payload + payload_offset, payload_len);
-
-	    rv = write(dport->user_port.fd, packet, header_len + payload_len);
-
-	    free(packet);
-
+            memmove(payload, payload + payload_offset, payload_len);
+            rv = write(dport->user_port.fd, pkt->pkt_data->data, header_len + payload_len);
             return OPENNSL_RX_HANDLED_OWNED;
         }
     }

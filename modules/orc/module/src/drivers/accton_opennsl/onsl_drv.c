@@ -414,7 +414,7 @@ static opennsl_rx_t onsl_drv_rx_cb(
 
             memmove(payload, payload + payload_offset, payload_len);
             rv = write(dport->user_port.fd, pkt->pkt_data->data, header_len + payload_len);
-            return OPENNSL_RX_HANDLED_OWNED;
+            return OPENNSL_RX_HANDLED;
         }
     }
 

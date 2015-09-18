@@ -157,7 +157,7 @@ onsl_drv_init_driver(orc_options_t * options, int argc, char * argv[])
         rv = opennsl_switch_control_set(drv_unit, opennslSwitchV4L3ErrToCpu, 1);
         //rv = opennsl_switch_control_set(drv_unit, opennslSwitchV6L3DstMissToCpu, 1);
         //rv = opennsl_switch_control_set(drv_unit, opennslSwitchNdPktToCpu, 1);
-        //rv = opennsl_switch_control_set(drv_unit, opennslSwitchL3EgressMode, 1);
+        rv = opennsl_switch_control_set(drv_unit, opennslSwitchL3EgressMode, 1);
     }
 
     if (onsl_drv_ports_num == -1)

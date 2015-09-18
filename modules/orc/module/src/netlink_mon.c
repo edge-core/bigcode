@@ -97,7 +97,7 @@ call_add_l3_v4_next_hop(
             ETH_ADDR_PRINT(next_hop_hw_mac),
             *l3_next_hop_id);
     if (err)
-        orc_err("options->drv->del_l3_next_hop() returned %d\n", err);
+        orc_err("options->drv->add_l3_next_hop() returned %d\n", err);
     return err;
 }
 

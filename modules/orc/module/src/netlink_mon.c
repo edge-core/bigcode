@@ -684,7 +684,13 @@ int handle_v4_neighbor(
                     IPV4_ADDR_PRINT(neigh.ip),
                     interface_index_to_name(neigh.if_index, intfnam, IFNAMSIZ),
                     neigh.if_index, next_hop_id);
-        }
+
+	    call_add_l3_v4_route(options,
+				 neigh.ip,
+				 0xffffffff,
+				 next_hop_id);
+
+	}
         /* update each route with the newly allocated next_hop_id */
         for (i = 0; i < n_next_hops; i++)
         {

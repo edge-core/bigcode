@@ -798,7 +798,7 @@ static int onsl_drv_add_l3_v4_route(u32 ip_dst, u32 netmask, l3_next_hop_id_t l3
         opennsl_l3_host_t_init(&l3_host);
 
         l3_host.l3a_flags |= OPENNSL_L3_HIT;
-        l3_host.l3a_ip_addr = ip_dst;
+	l3_host.l3a_ip_addr = reverse_u32_endian(ip_dst);
         l3_host.l3a_intf = l3_next_hop_id;
 
         for (drv_unit = 0; drv_unit <= onsl_drv_max_unit; drv_unit++)

@@ -66,17 +66,6 @@ static int onsl_drv_cpu_l3_intf = -1;
 static enum Debug_Thresholds _DEBUG_THRESHOLD = ORC_LOG_INFO;
 enum Debug_Thresholds *onsl_drv_debug_threshold = &_DEBUG_THRESHOLD;
 
-static u32 reverse_u32_endian(u32 in){
-  int i;
-  u32 out = 0;
-
-  for(i=0;i<4;i++){
-    out |= ((in>>(8*i))&0xff) << (8*(3-i));
-  }
-
-  return out;
-}
-
 /***************
  * init: just print args
  */
@@ -798,7 +787,7 @@ static int onsl_drv_add_l3_v4_route(u32 ip_dst, u32 netmask, l3_next_hop_id_t l3
         opennsl_l3_host_t_init(&l3_host);
 
         l3_host.l3a_flags |= OPENNSL_L3_HIT;
-	l3_host.l3a_ip_addr = reverse_u32_endian(ip_dst);
+	l3_host.l3a_ip_addr = ip_dst;
         l3_host.l3a_intf = l3_next_hop_id;
 
         for (drv_unit = 0; drv_unit <= onsl_drv_max_unit; drv_unit++)
@@ -814,7 +803,7 @@ static int onsl_drv_add_l3_v4_route(u32 ip_dst, u32 netmask, l3_next_hop_id_t l3
 
         l3_route.l3a_flags |= OPENNSL_L3_HIT | OPENNSL_L3_REPLACE;
         l3_route.l3a_intf = (opennsl_if_t)l3_next_hop_id;
-        l3_route.l3a_subnet = reverse_u32_endian(ip_dst);
+        l3_route.l3a_subnet = ip_dst;
         l3_route.l3a_ip_mask = netmask;
 
         for (drv_unit = 0; drv_unit <= onsl_drv_max_unit; drv_unit++)

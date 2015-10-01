@@ -361,15 +361,21 @@ int pending_next_hop_lookup(
                         curr->pending_next_hop,
                         curr->pending_netmask,
                         neighbor,
-                        0xffffffff) < 0)
+			0xffffffff) <= 0)
             )
     {
         if ((neighbor & curr->pending_netmask) == curr->pending_next_hop)
         {
             if ( (*n_entries) >= max)
                 return -2;      // return array full
-            dst_ip[*n_entries] = curr->pending_next_hop;
-            netmask[*n_entries] = curr->pending_netmask;
+	    if(curr->is_gateway){
+	      dst_ip[*n_entries] = curr->route_ip;
+	      netmask[*n_entries] = curr->route_netmask;
+	    }
+	    else{
+	      dst_ip[*n_entries] = curr->pending_next_hop;
+	      netmask[*n_entries] = curr->pending_netmask;
+	    }
             (*n_entries) ++;
         }
         curr = curr->next;

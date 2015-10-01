@@ -55,6 +55,17 @@ enum monitor_opp {
     OP_DEL
 };
 
+static u32 reverse_u32_endian(u32 in){
+  int i;
+  u32 out = 0;
+
+  for(i=0;i<4;i++){
+    out |= ((in>>(8*i))&0xff) << (8*(3-i));
+  }
+
+  return out;
+}
+
 /**
  * Wrapper functions for driver calls
  */
@@ -408,6 +419,8 @@ static int handle_v4_route(
         return -1;
     }
 
+    entry.dst_ip = reverse_u32_endian(entry.dst_ip);
+    entry.gateway = reverse_u32_endian(entry.gateway);
     if (entry.gateway_valid)
         snprintf(buf, BUFLEN, "via gateway "IPV4_FORMAT,
                 IPV4_ADDR_PRINT(entry.gateway));
@@ -636,6 +649,8 @@ int handle_v4_neighbor(
         snprintf(buf, BUFLEN, ETH_FORMAT, ETH_ADDR_PRINT(neigh.mac));
     else
         snprintf(buf, BUFLEN,"???");
+
+    neigh.ip = reverse_u32_endian(neigh.ip);
     orc_debug("start: %s IPv4 Neighbor %s --> " IPV4_FORMAT
             " on %s idx=%d\n",
             ((opp == OP_ADD)? "Adding" : "Deleting"),
@@ -684,12 +699,6 @@ int handle_v4_neighbor(
                     IPV4_ADDR_PRINT(neigh.ip),
                     interface_index_to_name(neigh.if_index, intfnam, IFNAMSIZ),
                     neigh.if_index, next_hop_id);
-
-	    call_add_l3_v4_route(options,
-				 neigh.ip,
-				 0xffffffff,
-				 next_hop_id);
-
 	}
         /* update each route with the newly allocated next_hop_id */
         for (i = 0; i < n_next_hops; i++)
